@@ -1,16 +1,14 @@
 package com.example.demospringsecurity.webctrl;
 
 import com.example.demospringsecurity.dto.LoginDTO;
+import com.example.demospringsecurity.dto.ProfileDTO;
 import com.example.demospringsecurity.dto.RegisterDTO;
 import com.example.demospringsecurity.exception.AppUserException;
 import com.example.demospringsecurity.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -20,7 +18,7 @@ public class AuthWebController {
     @Autowired
     AuthenticationService authenticationService;
 
-    @GetMapping("/")
+    @GetMapping({"/", "/home"})
     public String home() {
         return "home";
     }

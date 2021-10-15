@@ -22,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -73,8 +73,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user.setUsername(registerDTO.getUsername());
             user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
             user.setRoles(new HashSet<>(Collections.singletonList(roleRepo.getById(1L))));
-            user.setRegDate(LocalDate.now());
-            user.setModDate(LocalDate.now());
+            user.setRegDate(LocalDateTime.now());
+            user.setModDate(LocalDateTime.now());
             User savedUser = userRepo.save(user);
             Profile profile = constructProfile(registerDTO, savedUser);
             profileRepo.save(profile);

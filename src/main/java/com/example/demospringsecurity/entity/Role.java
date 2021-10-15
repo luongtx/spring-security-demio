@@ -4,7 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
 
-@Entity
+@Entity(name = "role")
 @Table(name = "[ROLE]")
 public class Role implements GrantedAuthority {
     @Id
