@@ -1,27 +1,34 @@
 package com.example.demospringsecurity.service.impl;
 
+import com.example.demospringsecurity.constants.ApplicationMessageConstant;
 import com.example.demospringsecurity.dto.LoginDTO;
 import com.example.demospringsecurity.dto.RegisterDTO;
 import com.example.demospringsecurity.entity.Profile;
 import com.example.demospringsecurity.entity.User;
+import com.example.demospringsecurity.exception.AppUserException;
 import com.example.demospringsecurity.repo.ProfileRepo;
+import com.example.demospringsecurity.repo.RoleRepo;
 import com.example.demospringsecurity.repo.UserRepo;
+import com.example.demospringsecurity.security.utils.JwtTokenUtil;
 import com.example.demospringsecurity.service.AuthenticationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashSet;
+
 @Service
+@Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
-    Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
 
     @Autowired
     UserDetailsService userDetailsService;
@@ -33,39 +40,57 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     UserRepo userRepo;
 
     @Autowired
+    RoleRepo roleRepo;
+
+    @Autowired
     ProfileRepo profileRepo;
 
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
+
     @Override
-    public boolean login(LoginDTO loginDTO) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userDetails, loginDTO.getPassword(),
-                userDetails.getAuthorities());
-        authenticationManager.authenticate(token);
-        boolean result = token.isAuthenticated();
-        if (result) {
-            SecurityContextHolder.getContext().setAuthentication(token);
+    public String login(LoginDTO loginDTO) throws AppUserException {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDTO.getUsername(), loginDTO.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            throw new AppUserException("Incorrect username or password");
         }
-        return result;
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
+        return jwtTokenUtil.generateToken(userDetails);
     }
 
     @Override
     @Transactional
-    public boolean register(RegisterDTO registerDTO) {
+    public String register(RegisterDTO registerDTO) throws AppUserException {
         try {
+            checkUserAvailability(registerDTO);
             User user = new User();
             user.setUsername(registerDTO.getUsername());
             user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+            user.setRoles(new HashSet<>(Collections.singletonList(roleRepo.getById(1L))));
+            user.setRegDate(LocalDate.now());
+            user.setModDate(LocalDate.now());
             User savedUser = userRepo.save(user);
             Profile profile = constructProfile(registerDTO, savedUser);
             profileRepo.save(profile);
+        } catch (AppUserException e) {
+            log.error(e.getMessage());
+            throw new AppUserException(e.getMessage());
         } catch (Exception e) {
-            logger.error(e.getMessage());
-            return false;
+            log.error(e.getMessage());
         }
-        return true;
+        return ApplicationMessageConstant.SUCCESSFULLY_REGISTERED;
+    }
+
+    private void checkUserAvailability(RegisterDTO registerDTO) throws AppUserException {
+        if (userRepo.findUserByUsername(registerDTO.getUsername()) != null) {
+            throw new AppUserException("This username has already taken by another user");
+        }
     }
 
     Profile constructProfile(RegisterDTO registerDTO, User user) {

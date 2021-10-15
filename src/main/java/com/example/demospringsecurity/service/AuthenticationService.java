@@ -2,9 +2,11 @@ package com.example.demospringsecurity.service;
 
 import com.example.demospringsecurity.dto.LoginDTO;
 import com.example.demospringsecurity.dto.RegisterDTO;
+import com.example.demospringsecurity.exception.AppUserException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 public interface AuthenticationService {
-    boolean login(LoginDTO loginDTO);
+    String login(LoginDTO loginDTO) throws AppUserException;
 
-    boolean register(RegisterDTO registerDTO);
+    String register(RegisterDTO registerDTO) throws AppUserException;
 }

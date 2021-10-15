@@ -1,24 +1,36 @@
-<configuratio>
+<configuration scan="true" scanPeriod="5 seconds">
+    <property name="LOGS" value="./logs"/>
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{15}) - %msg %n</pattern>
         </encoder>
     </appender>
-<!--    <appender name="FILE" class="ch.qos.logback.core.FileAppender" level="INFO" additivity="false">-->
-<!--        <file>logs/demo_security.log</file>-->
-<!--        <encoder>-->
-<!--            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
-<!--        </encoder>-->
-<!--    </appender>-->
-<!--    <logger name="com.example.demospringsecurity.service" level="DEBUG" additivity="false">-->
-<!--        <appender-ref ref="CONSOLE"/>-->
-<!--    </logger>-->
-<!--    <logger name="com.example.demospringsecurity.webctrl" level="DEBUG" additivity="false">-->
-<!--        <appender-ref ref="CONSOLE"/>-->
-<!--    </logger>-->
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/application.log</file>
+        <encoder
+                class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+        </encoder>
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>5MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.example.demospringsecurity.repo" level="INFO" additivity="false">
+
+    </logger>
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
     </root>
 
-</configuratio>
+</configuration>

@@ -1,6 +1,5 @@
 package com.example.demospringsecurity.entity;
 
-import com.example.demospringsecurity.dto.RegisterDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
